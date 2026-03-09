@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses - SPENDORA Advanced</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #667eea; --secondary: #764ba2;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+            --food: #FF6384; --transport: #36A2EB; --bills: #FFCE56;
+            --shopping: #4BC0C0; --entertainment: #9966FF; --others: #FF9F40;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; min-height: 100vh; }
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; padding: 20px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 1.8rem; }
+        .header-actions { display: flex; gap: 15px; }
+        .btn-header {
+            padding: 10px 20px; background: rgba(255,255,255,0.2); color: white;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .btn-header:hover { background: rgba(255,255,255,0.3); }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .filters-card {
+            background: white; padding: 25px; border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 25px;
+        }
+        .filters-card h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.3rem; }
+        .filters-row { display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-group { flex: 1; min-width: 150px; }
+        .filter-group label { display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 0.9rem; }
+        .filter-group select, .filter-group input {
+            width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-size: 0.95rem; font-family: inherit; transition: border-color 0.3s;
+        }
+        .filter-group select:focus, .filter-group input:focus { outline: none; border-color: var(--primary); }
+        .btn { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); }
+        .summary-row {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;
+        }
+        .summary-card {
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center;
+        }
+        .summary-card p { color: #666; font-size: 0.9rem; margin-bottom: 5px; }
+        .summary-card .value { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+        .summary-card.danger .value { color: var(--danger); }
+        .table-card { background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow: hidden; }
+        .table-header { padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+        .table-header h2 { color: var(--primary); font-size: 1.3rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 14px 20px; background: #f9fafb; text-align: left; font-weight: 700; color: #374151; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 14px 20px; border-bottom: 1px solid #f5f5f5; color: #374151; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafbff; }
+        .category-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 10px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+        }
+        .cat-food { background: rgba(255,99,132,0.15); color: #c01030; }
+        .cat-transport { background: rgba(54,162,235,0.15); color: #1565c0; }
+        .cat-bills { background: rgba(255,206,86,0.2); color: #a07000; }
+        .cat-shopping { background: rgba(75,192,192,0.15); color: #00796b; }
+        .cat-entertainment { background: rgba(153,102,255,0.15); color: #6a0dad; }
+        .cat-others { background: rgba(255,159,64,0.15); color: #e65100; }
+        .amount-cell { font-weight: 700; color: var(--danger); }
+        .action-btns { display: flex; gap: 8px; }
+        .btn-sm { padding: 5px 12px; font-size: 0.82rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-edit { background: rgba(102,126,234,0.1); color: var(--primary); }
+        .btn-edit:hover { background: rgba(102,126,234,0.2); }
+        .btn-del { background: rgba(239,68,68,0.1); color: var(--danger); }
+        .btn-del:hover { background: rgba(239,68,68,0.2); }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 10px; }
+        .recurring-badge { font-size: 0.75rem; color: var(--primary); margin-left: 5px; }
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 15px; padding: 30px; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .modal h3 { color: var(--primary); margin-bottom: 20px; font-size: 1.3rem; }
+        .modal .form-group { margin-bottom: 15px; }
+        .modal .form-group label { display: block; font-weight: 600; margin-bottom: 6px; color: #374151; }
+        .modal .form-group input, .modal .form-group select, .modal .form-group textarea { width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; font-family: inherit; }
+        .modal .form-group input:focus, .modal .form-group select:focus { outline: none; border-color: var(--primary); }
+        .modal .form-group textarea { resize: vertical; min-height: 70px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        @media (max-width: 768px) {
+            th:nth-child(4), td:nth-child(4), th:nth-child(5), td:nth-child(5) { display: none; }
+            .filters-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>💰 SPENDORA Advanced</h1>
+            <p>Expense History</p>
+        </div>
+        <div class="header-actions">
+            <a class="btn-header" href="add-expense.html">+ Add Expense</a>
+            <a class="btn-header" href="dashboard.html">🏠 Dashboard</a>
+            <button class="btn-header" onclick="logout()">🚪 Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filters -->
+        <div class="filters-card">
+            <h2>🔍 Filter Expenses</h2>
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label>Category</label>
+                    <select id="filterCategory">
+                        <option value="">All Categories</option>
+                        <option value="Food">🍔 Food</option>
+                        <option value="Transport">🚗 Transport</option>
+                        <option value="Bills">💡 Bills</option>
+                        <option value="Shopping">🛍️ Shopping</option>
+                        <option value="Entertainment">🎬 Entertainment</option>
+                        <option value="Others">📦 Others</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Month</label>
+                    <select id="filterMonth">
+                        <option value="">All Months</option>
+                        <option value="1">January</option><option value="2">February</option>
+                        <option value="3">March</option><option value="4">April</option>
+                        <option value="5">May</option><option value="6">June</option>
+                        <option value="7">July</option><option value="8">August</option>
+                        <option value="9">September</option><option value="10">October</option>
+                        <option value="11">November</option><option value="12">December</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Year</label>
+                    <select id="filterYear">
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2026">2026</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Search</label>
+                    <input type="text" id="filterSearch" placeholder="Search by title..." />
+                </div>
+                <div>
+                    <button class="btn" onclick="loadExpenses()">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary-row" id="summaryRow">
+            <div class="summary-card danger"><p>Total Spent</p><div class="value" id="totalSpent">₹0</div></div>
+            <div class="summary-card"><p>Transactions</p><div class="value" id="txCount">0</div></div>
+            <div class="summary-card"><p>Highest Category</p><div class="value" id="topCategory">-</div></div>
+            <div class="summary-card"><p>Avg per Expense</p><div class="value" id="avgExpense">₹0</div></div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+            <div class="table-header">
+                <h2>📋 Expense List</h2>
+                <button class="btn btn-success" onclick="exportPDF()">🖨️ Export PDF</button>
+            </div>
+            <div id="expenseTableContainer">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Note</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody">
+                        <tr><td colspan="6"><div class="empty-state"><div class="icon">⏳</div><p>Loading expenses...</p></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h3>✏️ Edit Expense</h3>
+            <input type="hidden" id="editId" />
+            <div class="form-group"><label>Title</label><input type="text" id="editTitle" /></div>
+            <div class="form-group"><label>Amount (₹)</label><input type="number" id="editAmount" min="0" step="0.01" /></div>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="editCategory">
+                    <option value="Food">🍔 Food</option><option value="Transport">🚗 Transport</option>
+                    <option value="Bills">💡 Bills</option><option value="Shopping">🛍️ Shopping</option>
+                    <option value="Entertainment">🎬 Entertainment</option><option value="Others">📦 Others</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Date</label><input type="date" id="editDate" /></div>
+            <div class="form-group"><label>Note</label><textarea id="editNote"></textarea></div>
+            <div class="modal-actions">
+                <button class="btn" style="background:#e5e7eb;color:#374151;" onclick="closeModal()">Cancel</button>
+                <button class="btn" onclick="saveEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '';
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) { window.location.replace('/'); }
+
+        // Back-button bfcache guard
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted || performance.getEntriesByType('navigation')[0]?.type === 'back_forward') {
+                if (!localStorage.getItem('authToken')) window.location.replace('/');
+            }
+        });
+
+        let allExpenses = [];
+        const catIcons = { Food:'🍔', Transport:'🚗', Bills:'💡', Shopping:'🛍️', Entertainment:'🎬', Others:'📦' };
+        const catClass = { Food:'cat-food', Transport:'cat-transport', Bills:'cat-bills', Shopping:'cat-shopping', Entertainment:'cat-entertainment', Others:'cat-others' };
+
+        // Set default month/year
+        const now = new Date();
+        document.getElementById('filterMonth').value = now.getMonth() + 1;
+        document.getElementById('filterYear').value = now.getFullYear();
+
+        async function loadExpenses() {
+            const category = document.getElementById('filterCategory').value;
+            const month = document.getElementById('filterMonth').value;
+            const year = document.getElementById('filterYear').value;
+            const search = document.getElementById('filterSearch').value.trim().toLowerCase();
+
+            let url = `${API_URL}/expenses?`;
+            if (category) url += `category=${category}&`;
+            if (month) url += `month=${month}&`;
+            if (year) url += `year=${year}`;
+
+            try {
+                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } });
+                let data = await res.json();
+
+                if (search) data = data.filter(e => e.title.toLowerCase().includes(search));
+                allExpenses = data;
+                renderTable(data);
+                renderSummary(data);
+            } catch (err) {
+                document.getElementById('expenseTableBody').innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="icon">❌</div><p>Failed to load expenses.</p></div></td></tr>`;
+            }
+        }
+
+        function renderTable(expenses) {
+            const tbody = document.getElementById('expenseTableBody');
+            if (!expenses.length) {
+                tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="icon">📭</div><p>No expenses found.</p></div></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = expenses.map(e => `
+                <tr>
+                    <td><strong>${e.title}</strong>${e.isRecurring ? '<span class="recurring-badge">🔁</span>' : ''}</td>
+                    <td><span class="category-badge ${catClass[e.category]}">${catIcons[e.category]} ${e.category}</span></td>
+                    <td class="amount-cell">-₹${parseFloat(e.amount).toFixed(2)}</td>
+                    <td>${new Date(e.date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}</td>
+                    <td style="color:#666;font-size:0.9rem;">${e.note || '-'}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-sm btn-edit" onclick="openEdit('${e._id}')">✏️ Edit</button>
+                            <button class="btn-sm btn-del" onclick="deleteExpense('${e._id}')">🗑️ Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderSummary(expenses) {
+            const total = expenses.reduce((s, e) => s + e.amount, 0);
+            document.getElementById('totalSpent').textContent = `₹${total.toFixed(2)}`;
+            document.getElementById('txCount').textContent = expenses.length;
+            document.getElementById('avgExpense').textContent = expenses.length ? `₹${(total / expenses.length).toFixed(2)}` : '₹0';
+
+            const catTotals = {};
+            expenses.forEach(e => catTotals[e.category] = (catTotals[e.category] || 0) + e.amount);
+            const top = Object.entries(catTotals).sort((a,b) => b[1]-a[1])[0];
+            document.getElementById('topCategory').textContent = top ? `${catIcons[top[0]]} ${top[0]}` : '-';
+        }
+
+        function openEdit(id) {
+            const exp = allExpenses.find(e => e._id === id);
+            if (!exp) return;
+            document.getElementById('editId').value = exp._id;
+            document.getElementById('editTitle').value = exp.title;
+            document.getElementById('editAmount').value = exp.amount;
+            document.getElementById('editCategory').value = exp.category;
+            document.getElementById('editDate').value = new Date(exp.date).toISOString().split('T')[0];
+            document.getElementById('editNote').value = exp.note || '';
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('editModal').classList.remove('active'); }
+
+        async function saveEdit() {
+            const id = document.getElementById('editId').value;
+            const body = {
+                title: document.getElementById('editTitle').value.trim(),
+                amount: parseFloat(document.getElementById('editAmount').value),
+                category: document.getElementById('editCategory').value,
+                date: document.getElementById('editDate').value,
+                note: document.getElementById('editNote').value.trim()
+            };
+            try {
+                const res = await fetch(`${API_URL}/expenses/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) { closeModal(); loadExpenses(); }
+                else alert('Failed to update expense.');
+            } catch { alert('Network error.'); }
+        }
+
+        async function deleteExpense(id) {
+            if (!confirm('Delete this expense?')) return;
+            try {
+                const res = await fetch(`${API_URL}/expenses/${id}`, {
+                    method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                if (res.ok) loadExpenses();
+                else alert('Failed to delete.');
+            } catch { alert('Network error.'); }
+        }
+
+        function exportPDF() {
+            if (!allExpenses.length) { alert('No data to export.'); return; }
+
+            const catColors = {
+                Food: '#FF6384', Transport: '#36A2EB', Bills: '#d4a800',
+                Shopping: '#4BC0C0', Entertainment: '#9966FF', Others: '#FF9F40'
+            };
+            const catIcons = { Food:'🍔', Transport:'🚗', Bills:'💡', Shopping:'🛍️', Entertainment:'🎬', Others:'📦' };
+
+            const total = allExpenses.reduce((s, e) => s + e.amount, 0);
+            const monthName = document.getElementById('filterMonth').options[document.getElementById('filterMonth').selectedIndex]?.text || '';
+            const year = document.getElementById('filterYear').value;
+            const category = document.getElementById('filterCategory').value || 'All Categories';
+
+            const rows = allExpenses.map((e, i) => `
+                <tr style="background:${i % 2 === 0 ? '#ffffff' : '#f9fafb'}">
+                    <td style="padding:10px 14px;border-bottom:1px solid #f0f0f0;font-weight:600;color:#1f2937">
+                        ${e.title}${e.isRecurring ? ' <span style="font-size:11px;color:#667eea">🔁</span>' : ''}
+                    </td>
+                    <td style="padding:10px 14px;border-bottom:1px solid #f0f0f0">
+                        <span style="background:${catColors[e.category]}22;color:${catColors[e.category]};padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">
+                            ${catIcons[e.category]} ${e.category}
+                        </span>
+                    </td>
+                    <td style="padding:10px 14px;border-bottom:1px solid #f0f0f0;font-weight:700;color:#ef4444">
+                        -₹${parseFloat(e.amount).toFixed(2)}
+                    </td>
+                    <td style="padding:10px 14px;border-bottom:1px solid #f0f0f0;color:#6b7280">
+                        ${new Date(e.date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}
+                    </td>
+                    <td style="padding:10px 14px;border-bottom:1px solid #f0f0f0;color:#9ca3af;font-size:13px">
+                        ${e.note || '—'}
+                    </td>
+                </tr>`).join('');
+
+            const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Expense Report - SPENDORA</title>
+    <style>
+        @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none; }
+            @page { margin: 15mm; size: A4; }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: #1f2937; }
+
+        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 28px 32px; border-radius: 0 0 16px 16px; margin-bottom: 24px; }
+        .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .logo { font-size: 24px; font-weight: 800; }
+        .logo span { font-size: 14px; font-weight: 400; opacity: 0.85; display: block; margin-top: 2px; }
+        .report-title { text-align: right; }
+        .report-title h2 { font-size: 18px; font-weight: 700; }
+        .report-title p { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+
+        .summary { display: flex; gap: 16px; margin-bottom: 24px; padding: 0 4px; }
+        .summary-card { flex: 1; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 18px; text-align: center; }
+        .summary-card p { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .summary-card .val { font-size: 20px; font-weight: 800; color: #667eea; }
+        .summary-card .val.red { color: #ef4444; }
+
+        .section-title { font-size: 14px; font-weight: 700; color: #374151; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; display: flex; align-items: center; gap: 6px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead tr { background: linear-gradient(135deg, #667eea, #764ba2); }
+        thead th { padding: 12px 14px; color: white; font-weight: 700; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        tbody tr:last-child td { border-bottom: none; }
+
+        .footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; }
+
+        .print-btn { position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.4); z-index: 999; }
+        .print-btn:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+
+    <div class="header">
+        <div class="header-top">
+            <div class="logo">💰 SPENDORA Advanced<span>Personal Finance Management</span></div>
+            <div class="report-title">
+                <h2>Expense Report</h2>
+                <p>Generated: ${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'long',year:'numeric'})}</p>
+                <p>Period: ${monthName} ${year} &nbsp;|&nbsp; Category: ${category}</p>
+            </div>
+        </div>
+    </div>
+
+    <div style="padding: 0 8px">
+        <div class="summary">
+            <div class="summary-card"><p>Total Spent</p><div class="val red">₹${total.toFixed(2)}</div></div>
+            <div class="summary-card"><p>Transactions</p><div class="val">${allExpenses.length}</div></div>
+            <div class="summary-card"><p>Avg per Expense</p><div class="val">₹${allExpenses.length ? (total / allExpenses.length).toFixed(2) : '0.00'}</div></div>
+            <div class="summary-card"><p>Period</p><div class="val" style="font-size:14px">${monthName} ${year}</div></div>
+        </div>
+
+        <div class="section-title">📋 Expense Details</div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Note</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+            <tfoot>
+                <tr style="background:#f3f4f6">
+                    <td colspan="2" style="padding:12px 14px;font-weight:800;color:#374151;font-size:13px">TOTAL</td>
+                    <td style="padding:12px 14px;font-weight:800;color:#ef4444;font-size:15px">-₹${total.toFixed(2)}</td>
+                    <td colspan="2" style="padding:12px 14px;color:#9ca3af;font-size:12px">${allExpenses.length} transaction${allExpenses.length !== 1 ? 's' : ''}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="footer">
+            <span>SPENDORA Advanced — Personal Finance Management</span>
+            <span>Report generated on ${new Date().toLocaleString('en-IN')}</span>
+        </div>
+    </div>
+</body>
+</html>`;
+
+            const win = window.open('', '_blank', 'width=900,height=700');
+            win.document.write(html);
+            win.document.close();
+            // Auto-trigger print dialog after a short delay so styles load
+            setTimeout(() => win.print(), 600);
+        }
+
+        document.getElementById('editModal').addEventListener('click', e => { if (e.target === document.getElementById('editModal')) closeModal(); });
+        document.getElementById('filterSearch').addEventListener('keypress', e => { if (e.key === 'Enter') loadExpenses(); });
+        function logout() { localStorage.clear(); window.location.href = '/'; }
+
+        loadExpenses();
+    </script>
+</body>
+</html>

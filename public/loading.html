@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading - SPENDORA</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: particleFloat 8s infinite;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .loading-container {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Multiple Spinner Options */
+        .spinner-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 40px;
+        }
+
+        /* Orbiting Circles Spinner */
+        .orbit-spinner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .orbit {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: white;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .orbit:nth-child(2) {
+            width: 80%;
+            height: 80%;
+            top: 10%;
+            left: 10%;
+            border-top-color: rgba(255, 255, 255, 0.7);
+            animation-duration: 1s;
+            animation-direction: reverse;
+        }
+
+        .orbit:nth-child(3) {
+            width: 60%;
+            height: 60%;
+            top: 20%;
+            left: 20%;
+            border-top-color: rgba(255, 255, 255, 0.4);
+            animation-duration: 0.7s;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Pulsing Center Circle */
+        .center-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0.5;
+            }
+        }
+
+        /* Loading Text */
+        .loading-text {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            animation: textGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes textGlow {
+            0%, 100% {
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            }
+            50% {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.6);
+            }
+        }
+
+        .loading-subtext {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Dots Animation */
+        .dots {
+            display: inline-block;
+        }
+
+        .dots span {
+            animation: blink 1.4s infinite;
+        }
+
+        .dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0%, 80%, 100% {
+                opacity: 0;
+            }
+            40% {
+                opacity: 1;
+            }
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 300px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin: 30px auto;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, white, rgba(255, 255, 255, 0.7));
+            border-radius: 10px;
+            width: 0%;
+            animation: progressGrow 3s ease-out forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            animation: shimmer 1s infinite;
+        }
+
+        @keyframes progressGrow {
+            to { width: 100%; }
+        }
+
+        @keyframes shimmer {
+            to { transform: translateX(100%); }
+        }
+
+        /* Progress Messages */
+        .progress-messages {
+            margin-top: 30px;
+            font-size: 1rem;
+            min-height: 30px;
+        }
+
+        .progress-message {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: messageSlideIn 0.5s ease-out forwards;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .progress-message::before {
+            content: '✓';
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            animation: checkMark 0.5s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            to {
+                opacity: 0.9;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes checkMark {
+            0% {
+                transform: scale(0) rotate(-180deg);
+            }
+            50% {
+                transform: scale(1.2) rotate(0deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        /* Percentage Counter */
+        .percentage {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 20px 0;
+            animation: countUp 3s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            .loading-text {
+                font-size: 1.5rem;
+            }
+            .progress-container {
+                width: 250px;
+            }
+            .percentage {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation" id="particleContainer"></div>
+
+    <div class="loading-container">
+        <!-- Spinner -->
+        <div class="spinner-container">
+            <div class="orbit-spinner">
+                <div class="orbit"></div>
+                <div class="orbit"></div>
+                <div class="orbit"></div>
+            </div>
+            <div class="center-pulse"></div>
+        </div>
+
+        <!-- Loading Text -->
+        <h2 class="loading-text">
+            Loading your dashboard<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+        </h2>
+        
+        <!-- Percentage -->
+        <div class="percentage" id="percentage">0%</div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+
+        <p class="loading-subtext">Please wait a moment</p>
+
+        <!-- Progress Messages -->
+        <div class="progress-messages" id="progressMessages"></div>
+    </div>
+
+    <script>
+        // Prevent back button
+        window.history.pushState(null, '', window.location.href);
+        window.onpopstate = function() {
+            window.history.pushState(null, '', window.location.href);
+        };
+
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('particleContainer');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 8 + 's';
+                particle.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        createParticles();
+
+        // Progress messages
+        const messages = [
+            'Verifying your account',
+            'Fetching your data',
+            'Loading expenses',
+            'Preparing dashboard',
+            'Almost there'
+        ];
+
+        let messageIndex = 0;
+        const progressDiv = document.getElementById('progressMessages');
+
+        // Show messages one by one
+        function showNextMessage() {
+            if (messageIndex < messages.length) {
+                // Clear previous message
+                progressDiv.innerHTML = '';
+                
+                const messageElement = document.createElement('div');
+                messageElement.className = 'progress-message';
+                messageElement.textContent = messages[messageIndex];
+                progressDiv.appendChild(messageElement);
+                messageIndex++;
+                
+                setTimeout(showNextMessage, 600);
+            }
+        }
+
+        // Animate percentage
+        function animatePercentage() {
+            const percentageElement = document.getElementById('percentage');
+            let current = 0;
+            const target = 100;
+            const duration = 3000;
+            const increment = target / (duration / 30);
+
+            const interval = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(interval);
+                }
+                percentageElement.textContent = Math.floor(current) + '%';
+            }, 30);
+        }
+
+        // Start animations
+        setTimeout(showNextMessage, 500);
+        animatePercentage();
+
+        // Check if user is logged in
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            // Not logged in, redirect to home
+            window.location.replace('/');
+        } else {
+            // Logged in, wait 3 seconds then redirect to dashboard
+            setTimeout(() => {
+                window.location.replace('/dashboard.html');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

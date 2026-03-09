@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Savings Bank - SPENDORA</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(145deg, #ffd700, #ffed4e);
+            border-radius: 50%;
+            animation: coinFall 10s linear infinite;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes coinFall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bank-icon {
+            font-size: 2rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .btn-back {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        /* Main Container */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 30px;
+        }
+
+        /* Bank Vault Section */
+        .bank-vault {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .vault-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .vault-header h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .vault-status {
+            display: inline-block;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .vault-status.locked {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Vault Display */
+        .vault-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vault-display::before {
+            content: '🔒';
+            position: absolute;
+            font-size: 10rem;
+            opacity: 0.1;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .vault-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: numberGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes numberGlow {
+            0%, 100% { text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+            50% { text-shadow: 0 4px 20px rgba(255, 255, 255, 0.5); }
+        }
+
+        .vault-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .unlock-timer {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .timer-label {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .timer-display {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Deposit Section */
+        .deposit-section {
+            margin-bottom: 30px;
+        }
+
+        .deposit-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .deposit-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-deposit {
+            padding: 14px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-deposit::before {
+            content: '💰';
+            position: absolute;
+            left: 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-deposit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-deposit:hover::before {
+            animation: coinSpin 0.6s ease-in-out;
+        }
+
+        @keyframes coinSpin {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+        }
+
+        /* Security PIN Section */
+        .security-section {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .security-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pin-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .pin-status.active {
+            border-left: 4px solid #10b981;
+        }
+
+        .pin-status.inactive {
+            border-left: 4px solid #ef4444;
+        }
+
+        .btn-set-pin {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-set-pin:hover {
+            background: #5568d3;
+        }
+
+        /* Transaction History */
+        .transaction-history {
+            margin-bottom: 30px;
+        }
+
+        .transaction-history h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .transaction-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            animation: slideInLeft 0.5s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .transaction-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .transaction-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            color: #10b981;
+            font-size: 1.1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        /* Tutorial Sidebar */
+        .tutorial-sidebar {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: fadeInRight 0.8s ease-out;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .tutorial-sidebar h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tutorial-step {
+            padding: 15px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid #3b82f6;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .tutorial-step:nth-child(2) { animation-delay: 0.1s; }
+        .tutorial-step:nth-child(3) { animation-delay: 0.2s; }
+        .tutorial-step:nth-child(4) { animation-delay: 0.3s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .tutorial-step h4 {
+            color: #1e40af;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .tutorial-step p {
+            color: #475569;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .feature-list {
+            margin-top: 30px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-text h5 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+
+        .feature-text p {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            animation: modalZoomIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes modalZoomIn {
+            from {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #667eea;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #ef4444;
+            transform: rotate(90deg);
+        }
+
+        .pin-input {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .pin-digit {
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            font-size: 2rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .pin-digit:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .tutorial-sidebar {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .vault-amount {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation" id="coinContainer"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>
+            <span class="bank-icon">🏦</span>
+            Virtual Savings Bank
+        </h1>
+        <button class="btn-back" onclick="goBack()">← Back to Dashboard</button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Bank Vault Section -->
+        <div class="bank-vault">
+            <div class="vault-header">
+                <h2>Your Savings Vault</h2>
+                <span class="vault-status" id="vaultStatus">🔒 Locked</span>
+            </div>
+
+            <!-- Vault Display -->
+            <div class="vault-display">
+                <div class="vault-amount" id="vaultAmount">$0.00</div>
+                <div class="vault-label">Total Savings</div>
+                <div class="unlock-timer" id="unlockTimer">
+                    <div class="timer-label">⏰ Unlocks in:</div>
+                    <div class="timer-display" id="timerDisplay">90 Days 00:00:00</div>
+                </div>
+            </div>
+
+            <!-- Security Section -->
+            <div class="security-section">
+                <h3>🔐 Security</h3>
+                <div class="pin-status" id="pinStatus">
+                    <span>PIN Status:</span>
+                    <strong id="pinStatusText">Not Set</strong>
+                </div>
+                <button class="btn-set-pin" onclick="openPinModal()">Set Security PIN</button>
+            </div>
+
+            <!-- Deposit Section -->
+            <div class="deposit-section">
+                <h3>💵 Make a Deposit</h3>
+                <form class="deposit-form" onsubmit="handleDeposit(event)">
+                    <div class="form-group">
+                        <label>Amount to Deposit</label>
+                        <input type="number" id="depositAmount" placeholder="Enter amount" step="0.01" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Note (Optional)</label>
+                        <input type="text" id="depositNote" placeholder="e.g., Emergency fund">
+                    </div>
+                    <button type="submit" class="btn-deposit">Deposit to Savings Bank</button>
+                </form>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="transaction-history">
+                <h3>📜 Transaction History</h3>
+                <div class="transaction-list" id="transactionList">
+                    <div class="empty-state">
+                        <p>💰 No transactions yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tutorial Sidebar -->
+        <div class="tutorial-sidebar">
+            <h3>📚 How It Works</h3>
+
+            <div class="tutorial-step">
+                <h4>Step 1: Set Your PIN</h4>
+                <p>Create a 4-digit security PIN to protect your savings. This ensures only you can access your funds.</p>
+            </div>
+
+            <div class="tutorial-step">
+                <h4>Step 2: Make Deposits</h4>
+                <p>Add money to your savings bank anytime. You can deposit manually or set up automatic savings from expenses.</p>
+            </div>
+
+            <div class="tutorial-step">
+                <h4>Step 3: Wait 3 Months</h4>
+                <p>Your savings are locked for 3 months. This helps build discipline and prevents impulsive withdrawals.</p>
+            </div>
+
+            <div class="tutorial-step">
+                <h4>Step 4: Unlock & Celebrate</h4>
+                <p>After 3 months, your vault unlocks! You'll see your total savings in the dashboard.</p>
+            </div>
+
+            <div class="feature-list">
+                <h4 style="color: #667eea; margin-bottom: 15px;">✨ Features</h4>
+
+                <div class="feature-item">
+                    <div class="feature-icon">🔒</div>
+                    <div class="feature-text">
+                        <h5>3-Month Lock</h5>
+                        <p>Funds are secured for 90 days to build saving habits</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">🔐</div>
+                    <div class="feature-text">
+                        <h5>PIN Protection</h5>
+                        <p>4-digit security PIN keeps your savings safe</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-text">
+                        <h5>Auto-Save</h5>
+                        <p>Automatically saves a percentage from each expense</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-text">
+                        <h5>Track Progress</h5>
+                        <p>View transaction history and countdown timer</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-text">
+                        <h5>Goal Setting</h5>
+                        <p>Set savings targets and track your progress</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN Modal -->
+    <div class="modal" id="pinModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔐 Set Security PIN</h3>
+                <button class="close-btn" onclick="closePinModal()">×</button>
+            </div>
+            <p style="color: #666; margin-bottom: 20px;">Create a 4-digit PIN to secure your savings</p>
+            <div class="pin-input">
+                <input type="password" maxlength="1" class="pin-digit" id="pin1" oninput="moveFocus(this, 'pin2')">
+                <input type="password" maxlength="1" class="pin-digit" id="pin2" oninput="moveFocus(this, 'pin3')">
+                <input type="password" maxlength="1" class="pin-digit" id="pin3" oninput="moveFocus(this, 'pin4')">
+                <input type="password" maxlength="1" class="pin-digit" id="pin4" oninput="validatePin()">
+            </div>
+            <button class="btn-deposit" style="width: 100%;" onclick="savePin()">Save PIN</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let authToken = localStorage.getItem('authToken');
+        let savingsBank = null;
+
+        // Check authentication
+        if (!authToken) {
+            window.location.replace('/');
+        }
+
+        // Prevent back button
+        window.history.pushState(null, '', window.location.href);
+        window.onpopstate = function() {
+            window.history.pushState(null, '', window.location.href);
+        };
+
+        // Create falling coins animation
+        function createCoins() {
+            const container = document.getElementById('coinContainer');
+            for (let i = 0; i < 15; i++) {
+                const coin = document.createElement('div');
+                coin.className = 'coin';
+                coin.style.left = Math.random() * 100 + '%';
+                coin.style.animationDelay = Math.random() * 10 + 's';
+                coin.style.animationDuration = (Math.random() * 5 + 8) + 's';
+                container.appendChild(coin);
+            }
+        }
+
+        createCoins();
+
+        // Load savings bank data
+        window.onload = async function() {
+            await loadSavingsBank();
+            updateDisplay();
+            startTimer();
+        };
+
+        async function loadSavingsBank() {
+            try {
+                const response = await fetch(`${API_URL}/savings-bank`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    savingsBank = await response.json();
+                } else {
+                    // Create new savings bank
+                    await createSavingsBank();
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+            }
+        }
+
+        async function createSavingsBank() {
+            try {
+                const response = await fetch(`${API_URL}/savings-bank`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({})
+                });
+
+                if (response.ok) {
+                    savingsBank = await response.json();
+                }
+            } catch (error) {
+                console.error('Create error:', error);
+            }
+        }
+
+        function updateDisplay() {
+            if (!savingsBank) return;
+
+            const currencySymbol = getCurrencySymbol(savingsBank.currency || 'USD');
+            
+            // Update vault amount
+            document.getElementById('vaultAmount').textContent = 
+                `${currencySymbol}${savingsBank.totalSavings.toFixed(2)}`;
+
+            // Update vault status
+            const isLocked = !isUnlocked();
+            const statusElement = document.getElementById('vaultStatus');
+            statusElement.textContent = isLocked ? '🔒 Locked' : '🔓 Unlocked';
+            statusElement.className = isLocked ? 'vault-status locked' : 'vault-status';
+
+            // Update PIN status
+            const pinStatusElement = document.getElementById('pinStatus');
+            const pinStatusText = document.getElementById('pinStatusText');
+            if (savingsBank.pin) {
+                pinStatusElement.className = 'pin-status active';
+                pinStatusText.textContent = '✓ Active';
+            } else {
+                pinStatusElement.className = 'pin-status inactive';
+                pinStatusText.textContent = '✗ Not Set';
+            }
+
+            // Update transactions
+            displayTransactions();
+        }
+
+        function displayTransactions() {
+            const list = document.getElementById('transactionList');
+            
+            if (!savingsBank.transactions || savingsBank.transactions.length === 0) {
+                list.innerHTML = '<div class="empty-state"><p>💰 No transactions yet</p></div>';
+                return;
+            }
+
+            const currencySymbol = getCurrencySymbol(savingsBank.currency || 'USD');
+            
+            list.innerHTML = savingsBank.transactions.map(tx => `
+                <div class="transaction-item">
+                    <div class="transaction-info">
+                        <div class="transaction-icon">💵</div>
+                        <div>
+                            <strong>${tx.note || 'Deposit'}</strong>
+                            <div style="font-size: 0.85rem; color: #666;">
+                                ${new Date(tx.date).toLocaleDateString()}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="transaction-amount">
+                        +${currencySymbol}${tx.amount.toFixed(2)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function isUnlocked() {
+            if (!savingsBank || !savingsBank.createdAt) return false;
+            
+            const createdDate = new Date(savingsBank.createdAt);
+            const unlockDate = new Date(createdDate.getTime() + (90 * 24 * 60 * 60 * 1000)); // 90 days
+            const now = new Date();
+            
+            return now >= unlockDate;
+        }
+
+        function startTimer() {
+            if (!savingsBank) return;
+
+            const updateTimer = () => {
+                if (isUnlocked()) {
+                    document.getElementById('timerDisplay').textContent = 'UNLOCKED! 🎉';
+                    return;
+                }
+
+                const createdDate = new Date(savingsBank.createdAt);
+                const unlockDate = new Date(createdDate.getTime() + (90 * 24 * 60 * 60 * 1000));
+                const now = new Date();
+                const diff = unlockDate - now;
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('timerDisplay').textContent = 
+                    `${days} Days ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            };
+
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        async function handleDeposit(event) {
+            event.preventDefault();
+
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            const note = document.getElementById('depositNote').value;
+
+            if (amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/savings-bank/deposit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ amount, note })
+                });
+
+                if (response.ok) {
+                    await loadSavingsBank();
+                    updateDisplay();
+                    
+                    // Clear form
+                    document.getElementById('depositAmount').value = '';
+                    document.getElementById('depositNote').value = '';
+                    
+                    alert('💰 Deposit successful!');
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Deposit failed');
+                }
+            } catch (error) {
+                alert('Error making deposit');
+            }
+        }
+
+        function openPinModal() {
+            document.getElementById('pinModal').style.display = 'flex';
+            document.getElementById('pin1').focus();
+        }
+
+        function closePinModal() {
+            document.getElementById('pinModal').style.display = 'none';
+            document.getElementById('pin1').value = '';
+            document.getElementById('pin2').value = '';
+            document.getElementById('pin3').value = '';
+            document.getElementById('pin4').value = '';
+        }
+
+        function moveFocus(current, nextId) {
+            if (current.value.length === 1) {
+                const nextInput = document.getElementById(nextId);
+                if (nextInput) nextInput.focus();
+            }
+        }
+
+        function validatePin() {
+            const pin1 = document.getElementById('pin1').value;
+            const pin2 = document.getElementById('pin2').value;
+            const pin3 = document.getElementById('pin3').value;
+            const pin4 = document.getElementById('pin4').value;
+
+            if (pin1 && pin2 && pin3 && pin4) {
+                // All digits entered
+                return true;
+            }
+            return false;
+        }
+
+        async function savePin() {
+            const pin = document.getElementById('pin1').value +
+                        document.getElementById('pin2').value +
+                        document.getElementById('pin3').value +
+                        document.getElementById('pin4').value;
+
+            if (pin.length !== 4) {
+                alert('Please enter a 4-digit PIN');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/savings-bank/set-pin`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ pin })
+                });
+
+                if (response.ok) {
+                    await loadSavingsBank();
+                    updateDisplay();
+                    closePinModal();
+                    alert('✅ PIN set successfully!');
+                } else {
+                    alert('Failed to set PIN');
+                }
+            } catch (error) {
+                alert('Error setting PIN');
+            }
+        }
+
+        function goBack() {
+            window.location.href = '/dashboard.html';
+        }
+
+        function getCurrencySymbol(currency) {
+            const symbols = {
+                'USD': '$',
+                'EUR': '€',
+                'GBP': '£',
+                'INR': '₹',
+                'JPY': '¥'
+            };
+            return symbols[currency] || '$';
+        }
+    </script>
+</body>
+</html>

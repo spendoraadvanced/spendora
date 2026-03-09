@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Insights - SPENDORA Advanced</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #667eea; --secondary: #764ba2;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+            --food: #FF6384; --transport: #36A2EB; --bills: #FFCE56;
+            --shopping: #4BC0C0; --entertainment: #9966FF; --others: #FF9F40;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; min-height: 100vh; }
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; padding: 20px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 1.8rem; }
+        .header-actions { display: flex; gap: 15px; }
+        .btn-header {
+            padding: 10px 20px; background: rgba(255,255,255,0.2); color: white;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .btn-header:hover { background: rgba(255,255,255,0.3); }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 25px; }
+        .stat-card {
+            background: white; padding: 22px; border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-4px); }
+        .stat-card .icon { font-size: 2rem; margin-bottom: 8px; }
+        .stat-card p { font-size: 0.85rem; color: #666; margin-bottom: 6px; }
+        .stat-card .value { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+        .stat-card.danger .value { color: var(--danger); }
+        .stat-card.success .value { color: var(--success); }
+        .stat-card.warning .value { color: var(--warning); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .card h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.3rem; }
+        .chart-container { position: relative; height: 280px; }
+        /* Warning items */
+        .warning-item { padding: 14px 16px; background: #fee2e2; border-left: 4px solid var(--danger); border-radius: 8px; margin-bottom: 10px; }
+        .warning-item strong { color: var(--danger); }
+        .warning-item small { color: #7f1d1d; }
+        /* Insight items */
+        .insight-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 14px 16px; background: #f0f9ff; border-radius: 10px; margin-bottom: 10px;
+            border-left: 4px solid #3b82f6;
+        }
+        .insight-item .insight-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+        .insight-item p { color: #1e3a5f; font-size: 0.95rem; line-height: 1.5; }
+        /* Suggestion items */
+        .suggestion-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 14px 16px; background: #f0fdf4; border-radius: 10px; margin-bottom: 10px;
+            border-left: 4px solid var(--success);
+        }
+        .suggestion-item .sug-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+        .suggestion-item p { color: #14532d; font-size: 0.95rem; line-height: 1.5; }
+        /* Category breakdown */
+        .cat-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+        .cat-row:last-child { border-bottom: none; }
+        .cat-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .cat-label { flex: 1; font-weight: 600; color: #374151; font-size: 0.9rem; }
+        .cat-bar-container { flex: 2; background: #e5e7eb; height: 8px; border-radius: 10px; overflow: hidden; }
+        .cat-bar { height: 100%; border-radius: 10px; }
+        .cat-amount { font-weight: 700; color: var(--danger); font-size: 0.9rem; min-width: 80px; text-align: right; }
+        .cat-pct { font-size: 0.8rem; color: #9ca3af; min-width: 40px; text-align: right; }
+        /* Empty */
+        .empty-state { text-align: center; padding: 40px; color: #9ca3af; }
+        .empty-state .icon { font-size: 2.5rem; margin-bottom: 8px; }
+        /* Loading */
+        .loading-overlay { text-align: center; padding: 60px; color: #666; }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #e5e7eb;
+            border-top-color: var(--primary); border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 0 auto 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .score-circle {
+            width: 120px; height: 120px; border-radius: 50%;
+            background: conic-gradient(var(--primary) 0%, #e5e7eb 0%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            margin: 0 auto 15px; box-shadow: 0 4px 20px rgba(102,126,234,0.2);
+            position: relative;
+        }
+        .score-inner {
+            width: 90px; height: 90px; border-radius: 50%; background: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: absolute;
+        }
+        .score-val { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+        .score-label { font-size: 0.65rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
+        @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>💰 SPENDORA Advanced</h1>
+            <p>AI Financial Insights</p>
+        </div>
+        <div class="header-actions">
+            <a class="btn-header" href="dashboard.html">🏠 Dashboard</a>
+            <button class="btn-header" onclick="logout()">🚪 Logout</button>
+        </div>
+    </div>
+
+    <div class="container" id="mainContent">
+        <div class="loading-overlay">
+            <div class="spinner"></div>
+            <p>Analyzing your finances...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '';
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) { window.location.replace('/'); }
+
+        // Back-button bfcache guard
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted || performance.getEntriesByType('navigation')[0]?.type === 'back_forward') {
+                if (!localStorage.getItem('authToken')) window.location.replace('/');
+            }
+        });
+
+        const catColors = { Food:'#FF6384', Transport:'#36A2EB', Bills:'#FFCE56', Shopping:'#4BC0C0', Entertainment:'#9966FF', Others:'#FF9F40' };
+        const catIcons = { Food:'🍔', Transport:'🚗', Bills:'💡', Shopping:'🛍️', Entertainment:'🎬', Others:'📦' };
+        let doughnutChart = null;
+
+        async function loadInsights() {
+            try {
+                const res = await fetch(`${API_URL}/ai-insights`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+                const data = await res.json();
+                renderAll(data);
+            } catch (err) {
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="empty-state"><div class="icon">❌</div><p>Failed to load insights. Please try again.</p></div>`;
+            }
+        }
+
+        function renderAll(data) {
+            // Server returns: totalSpending, categorySpending, highestCategory, warnings, suggestions (array of {type, message})
+            const { totalSpending = 0, categorySpending = {}, highestCategory, warnings = [], suggestions = [] } = data;
+
+            // Calculate averageDaily from totalSpending
+            const dayOfMonth = new Date().getDate();
+            const averageDaily = dayOfMonth > 0 ? totalSpending / dayOfMonth : 0;
+
+            // suggestions from server are [{type, message}] — extract message strings
+            const suggestionMessages = suggestions.map(s => typeof s === 'object' ? s.message : s);
+
+            // Build observations from server data (server has no separate insights array)
+            const observations = [];
+            if (highestCategory) observations.push(`Your highest spending category this month is ${highestCategory}.`);
+            if (totalSpending > 0) observations.push(`You have spent ₹${totalSpending.toFixed(2)} so far this month.`);
+            if (averageDaily > 0) observations.push(`Your average daily spending is ₹${averageDaily.toFixed(2)}.`);
+            if (warnings.length === 0 && totalSpending > 0) observations.push(`All your budgets are within limits. Great financial discipline!`);
+
+            const topEntry = Object.entries(categorySpending).sort((a, b) => b[1] - a[1])[0];
+            const topCat = topEntry ? topEntry[0] : '-';
+            const totalCatSpent = Object.values(categorySpending).reduce((s, v) => s + v, 0);
+
+            // Health score (simple: fewer warnings = higher score)
+            const score = Math.max(20, 100 - warnings.length * 15);
+            const scoreAngle = (score / 100) * 360;
+
+            const html = `
+            <!-- Stats -->
+            <div class="stats-row">
+                <div class="stat-card danger"><div class="icon">💸</div><p>Total Spent (Month)</p><div class="value">₹${totalSpending.toFixed(2)}</div></div>
+                <div class="stat-card warning"><div class="icon">📅</div><p>Avg Daily Spending</p><div class="value">₹${averageDaily.toFixed(2)}</div></div>
+                <div class="stat-card"><div class="icon">🏆</div><p>Highest Category</p><div class="value">${topCat !== '-' ? catIcons[topCat] + ' ' + topCat : '-'}</div></div>
+                <div class="stat-card success"><div class="icon">⚠️</div><p>Budget Warnings</p><div class="value" style="color:${warnings.length > 0 ? 'var(--danger)' : 'var(--success)'}">${warnings.length}</div></div>
+            </div>
+
+            <!-- Charts row -->
+            <div class="grid-2">
+                <div class="card">
+                    <h2>🍕 Spending by Category</h2>
+                    <div class="chart-container"><canvas id="doughnutChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <h2>📊 Category Breakdown</h2>
+                    <div id="catBreakdown"></div>
+                </div>
+            </div>
+
+            <!-- Warnings & Insights -->
+            <div class="grid-2">
+                <div class="card">
+                    <h2>⚠️ Budget Warnings</h2>
+                    <div id="warningsContainer"></div>
+                </div>
+                <div class="card">
+                    <h2>🔍 Financial Observations</h2>
+                    <div id="insightsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Suggestions -->
+            <div class="card" style="margin-bottom: 30px;">
+                <h2>💡 Money-Saving Suggestions</h2>
+                <div id="suggestionsContainer"></div>
+            </div>`;
+
+            document.getElementById('mainContent').innerHTML = html;
+
+            // Render doughnut chart
+            const catLabels = Object.keys(categorySpending);
+            const catValues = Object.values(categorySpending);
+            const catColorsArr = catLabels.map(c => catColors[c] || '#ccc');
+
+            if (catLabels.length > 0) {
+                doughnutChart = new Chart(document.getElementById('doughnutChart').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: catLabels.map(c => `${catIcons[c] || '📦'} ${c}`),
+                        datasets: [{ data: catValues, backgroundColor: catColorsArr, borderWidth: 3, borderColor: '#fff' }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 12 } } } },
+                        cutout: '60%'
+                    }
+                });
+            } else {
+                document.getElementById('doughnutChart').parentElement.innerHTML = `<div class="empty-state"><div class="icon">📉</div><p>No spending data yet</p></div>`;
+            }
+
+            // Render category breakdown bars
+            const sortedCats = Object.entries(categorySpending).sort((a, b) => b[1] - a[1]);
+            document.getElementById('catBreakdown').innerHTML = sortedCats.length ? sortedCats.map(([cat, amt]) => {
+                const pct = totalCatSpent > 0 ? (amt / totalCatSpent) * 100 : 0;
+                return `<div class="cat-row">
+                    <div class="cat-dot" style="background:${catColors[cat]}"></div>
+                    <div class="cat-label">${catIcons[cat]} ${cat}</div>
+                    <div class="cat-bar-container"><div class="cat-bar" style="width:${pct}%;background:${catColors[cat]}"></div></div>
+                    <div class="cat-pct">${Math.round(pct)}%</div>
+                    <div class="cat-amount">₹${amt.toFixed(2)}</div>
+                </div>`;
+            }).join('') : `<div class="empty-state"><div class="icon">📭</div><p>No data</p></div>`;
+
+            // Warnings — server returns {category, spent, limit, percentage}
+            document.getElementById('warningsContainer').innerHTML = warnings.length ? warnings.map(w => `
+                <div class="warning-item">
+                    <strong>⚠️ ${w.category}</strong> — ${w.percentage}% of budget used<br>
+                    <small>₹${Number(w.spent).toFixed(2)} spent of ₹${Number(w.limit).toFixed(2)} limit</small>
+                </div>`).join('')
+                : `<div class="empty-state"><div class="icon">✅</div><p>All budgets on track! Great job!</p></div>`;
+
+            // Observations — built from server data (server has no separate insights array)
+            const insightIcons = ['💡','📈','🔎','📌','🧮','💬'];
+            document.getElementById('insightsContainer').innerHTML = observations.length ? observations.map((ins, i) => `
+                <div class="insight-item">
+                    <div class="insight-icon">${insightIcons[i % insightIcons.length]}</div>
+                    <p>${ins}</p>
+                </div>`).join('')
+                : `<div class="empty-state"><div class="icon">📊</div><p>Add more expenses to get insights.</p></div>`;
+
+            // Suggestions — server returns [{type, message}], we extracted .message into suggestionMessages
+            const sugIcons = ['🍱','🚌','💰','🎮','🛒','📅'];
+            document.getElementById('suggestionsContainer').innerHTML = suggestionMessages.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px">${suggestionMessages.map((sug, i) => `
+                <div class="suggestion-item">
+                    <div class="sug-icon">${sugIcons[i % sugIcons.length]}</div>
+                    <p>${sug}</p>
+                </div>`).join('')}</div>`
+                : `<div class="empty-state"><div class="icon">🌟</div><p>Keep tracking to receive personalized suggestions!</p></div>`;
+        }
+
+        function logout() { localStorage.clear(); window.location.href = '/'; }
+        loadInsights();
+    </script>
+</body>
+</html>

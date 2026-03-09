@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Goals - SPENDORA Advanced</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #667eea; --secondary: #764ba2;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; min-height: 100vh; }
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; padding: 20px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 1.8rem; }
+        .header-actions { display: flex; gap: 15px; }
+        .btn-header {
+            padding: 10px 20px; background: rgba(255,255,255,0.2); color: white;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .btn-header:hover { background: rgba(255,255,255,0.3); }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .grid-2 { display: grid; grid-template-columns: 380px 1fr; gap: 25px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .card h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.3rem; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 0.9rem; }
+        .form-group input { width: 100%; padding: 11px 13px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; font-family: inherit; transition: border-color 0.3s; }
+        .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 4px; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.4); }
+        .summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .summary-card { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center; }
+        .summary-card p { font-size: 0.85rem; color: #666; margin-bottom: 5px; }
+        .summary-card .val { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+        .goal-card {
+            background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 18px; overflow: hidden; border: 2px solid transparent; transition: border-color 0.3s;
+        }
+        .goal-card:hover { border-color: var(--primary); }
+        .goal-card.completed { border-color: var(--success); }
+        .goal-card.expired { border-color: #e5e7eb; opacity: 0.7; }
+        .goal-header {
+            padding: 18px 20px; display: flex; justify-content: space-between; align-items: flex-start;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .goal-name { font-size: 1.1rem; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
+        .goal-dates { font-size: 0.82rem; color: #666; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+        .status-active { background: rgba(102,126,234,0.1); color: var(--primary); }
+        .status-completed { background: rgba(16,185,129,0.1); color: #065f46; }
+        .status-expired { background: rgba(107,114,128,0.1); color: #6b7280; }
+        .goal-body { padding: 18px 20px; }
+        .goal-amounts { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; }
+        .goal-amounts .saved { font-weight: 700; color: var(--success); font-size: 1rem; }
+        .goal-amounts .target { color: #6b7280; }
+        .progress-bar-container { background: #e5e7eb; height: 12px; border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
+        .progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--success), #34d399); transition: width 0.6s ease; }
+        .progress-fill.completed { background: linear-gradient(90deg, var(--success), #6ee7b7); }
+        .progress-pct { font-size: 0.85rem; font-weight: 700; color: var(--success); text-align: right; margin-bottom: 12px; }
+        .goal-footer { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-sm { padding: 7px 14px; font-size: 0.82rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-add { background: rgba(16,185,129,0.1); color: #065f46; }
+        .btn-add:hover { background: rgba(16,185,129,0.2); }
+        .btn-del { background: rgba(239,68,68,0.1); color: var(--danger); }
+        .btn-del:hover { background: rgba(239,68,68,0.2); }
+        .days-remaining { font-size: 0.8rem; color: #9ca3af; margin-top: 4px; }
+        .days-remaining.urgent { color: var(--danger); font-weight: 600; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #9ca3af; }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 10px; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 15px; font-weight: 600; display: none; }
+        .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid var(--success); }
+        .alert-error { background: #fee2e2; color: #991b1b; border-left: 4px solid var(--danger); }
+        .section-title { font-size: 1rem; font-weight: 700; color: #374151; margin: 20px 0 12px; display: flex; align-items: center; gap: 8px; }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 15px; padding: 30px; width: 90%; max-width: 380px; }
+        .modal h3 { color: var(--primary); margin-bottom: 20px; }
+        .modal .form-group { margin-bottom: 15px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-actions button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .modal-actions .btn-cancel { background: #e5e7eb; color: #374151; }
+        .modal-actions .btn-confirm { background: var(--success); color: white; }
+        @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } .summary-row { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>💰 SPENDORA Advanced</h1>
+            <p>Savings Goals</p>
+        </div>
+        <div class="header-actions">
+            <a class="btn-header" href="dashboard.html">🏠 Dashboard</a>
+            <button class="btn-header" onclick="logout()">🚪 Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Summary -->
+        <div class="summary-row">
+            <div class="summary-card"><p>Total Goals</p><div class="val" id="totalGoals">0</div></div>
+            <div class="summary-card"><p>Total Saved</p><div class="val" style="color:var(--success)" id="totalSaved">₹0</div></div>
+            <div class="summary-card"><p>Completed Goals</p><div class="val" style="color:#10b981" id="completedGoals">0</div></div>
+        </div>
+
+        <div class="alert alert-success" id="successAlert"></div>
+        <div class="alert alert-error" id="errorAlert"></div>
+
+        <div class="grid-2">
+            <!-- Create Goal Form -->
+            <div>
+                <div class="card">
+                    <h2>🎯 Create New Goal</h2>
+                    <div class="form-group"><label>Goal Name *</label><input type="text" id="goalName" placeholder="e.g. Vacation to Goa" /></div>
+                    <div class="form-group"><label>Target Amount (₹) *</label><input type="number" id="targetAmount" placeholder="50000" min="1" step="0.01" /></div>
+                    <div class="form-group"><label>Initial Saved Amount (₹)</label><input type="number" id="savedAmount" placeholder="0" min="0" step="0.01" /></div>
+                    <div class="form-group"><label>Deadline</label><input type="date" id="deadline" /></div>
+                    <button class="btn-primary" onclick="createGoal()">🚀 Create Goal</button>
+                </div>
+            </div>
+
+            <!-- Goals List -->
+            <div>
+                <div id="activeGoalsSection">
+                    <div class="section-title">🔥 Active Goals</div>
+                    <div id="activeGoalsList"><div class="empty-state"><div class="icon">⏳</div><p>Loading...</p></div></div>
+                </div>
+                <div id="completedGoalsSection" style="margin-top: 10px;">
+                    <div class="section-title" style="color:#10b981">✅ Completed Goals</div>
+                    <div id="completedGoalsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Money Modal -->
+    <div class="modal-overlay" id="addMoneyModal">
+        <div class="modal">
+            <h3>💸 Add Money to Goal</h3>
+            <p id="addMoneyGoalName" style="color:#666;margin-bottom:15px;"></p>
+            <input type="hidden" id="addMoneyId" />
+            <div class="form-group">
+                <label>Amount to Add (₹)</label>
+                <input type="number" id="addMoneyAmount" placeholder="Enter amount" min="1" step="0.01" />
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-confirm" onclick="confirmAddMoney()">Add Money ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '';
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) { window.location.replace('/'); }
+
+        // Back-button bfcache guard
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted || performance.getEntriesByType('navigation')[0]?.type === 'back_forward') {
+                if (!localStorage.getItem('authToken')) window.location.replace('/');
+            }
+        });
+
+        // Set min deadline to today
+        document.getElementById('deadline').min = new Date().toISOString().split('T')[0];
+
+        async function loadGoals() {
+            try {
+                const res = await fetch(`${API_URL}/savings-goals`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+                const goals = await res.json();
+                renderGoals(goals);
+                renderSummary(goals);
+            } catch { showAlert('error', '❌ Failed to load goals.'); }
+        }
+
+        function renderGoals(goals) {
+            const active = goals.filter(g => g.status === 'active');
+            const completed = goals.filter(g => g.status === 'completed');
+            const expired = goals.filter(g => g.status === 'expired');
+
+            document.getElementById('activeGoalsList').innerHTML = active.length
+                ? active.map(g => renderGoalCard(g)).join('')
+                : `<div class="empty-state"><div class="icon">🎯</div><p>No active goals yet. Create one!</p></div>`;
+
+            document.getElementById('completedGoalsList').innerHTML = [...completed, ...expired]
+                .map(g => renderGoalCard(g)).join('');
+        }
+
+        function renderGoalCard(g) {
+            const pct = Math.min((g.savedAmount / g.targetAmount) * 100, 100);
+            const remaining = g.targetAmount - g.savedAmount;
+            const deadline = g.deadline ? new Date(g.deadline) : null;
+            const daysLeft = deadline ? Math.ceil((deadline - new Date()) / (1000*60*60*24)) : null;
+            const statusClass = g.status === 'completed' ? 'completed' : g.status === 'expired' ? 'expired' : '';
+            const statusBadgeClass = g.status === 'completed' ? 'status-completed' : g.status === 'expired' ? 'status-expired' : 'status-active';
+            const statusEmoji = g.status === 'completed' ? '✅ Completed' : g.status === 'expired' ? '⏰ Expired' : '🔥 Active';
+
+            return `
+            <div class="goal-card ${statusClass}">
+                <div class="goal-header">
+                    <div>
+                        <div class="goal-name">${g.goalName}</div>
+                        ${deadline ? `<div class="goal-dates">Deadline: ${deadline.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}</div>` : ''}
+                        ${daysLeft !== null && g.status === 'active' ? `<div class="days-remaining ${daysLeft <= 7 ? 'urgent' : ''}">${daysLeft > 0 ? `${daysLeft} days remaining` : 'Deadline passed'}</div>` : ''}
+                    </div>
+                    <span class="status-badge ${statusBadgeClass}">${statusEmoji}</span>
+                </div>
+                <div class="goal-body">
+                    <div class="goal-amounts">
+                        <span class="saved">₹${g.savedAmount.toFixed(2)} saved</span>
+                        <span class="target">Target: ₹${g.targetAmount.toFixed(2)}</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-fill ${g.status === 'completed' ? 'completed' : ''}" style="width:${pct}%"></div>
+                    </div>
+                    <div class="progress-pct">${Math.round(pct)}% achieved${g.status === 'active' ? ` • ₹${remaining.toFixed(2)} to go` : ''}</div>
+                    <div class="goal-footer">
+                        ${g.status === 'active' ? `<button class="btn-sm btn-add" onclick="openAddMoney('${g._id}','${g.goalName}',${g.savedAmount})">💸 Add Money</button>` : ''}
+                        <button class="btn-sm btn-del" onclick="deleteGoal('${g._id}')">🗑️ Delete</button>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function renderSummary(goals) {
+            document.getElementById('totalGoals').textContent = goals.length;
+            document.getElementById('totalSaved').textContent = `₹${goals.reduce((s,g) => s + g.savedAmount, 0).toFixed(2)}`;
+            document.getElementById('completedGoals').textContent = goals.filter(g => g.status === 'completed').length;
+        }
+
+        async function createGoal() {
+            const goalName = document.getElementById('goalName').value.trim();
+            const targetAmount = parseFloat(document.getElementById('targetAmount').value);
+            const deadline = document.getElementById('deadline').value;
+
+            if (!goalName || !targetAmount || targetAmount <= 0) { showAlert('error', '❌ Please fill goal name and target amount.'); return; }
+            if (!deadline) { showAlert('error', '❌ Please set a deadline for the goal.'); return; }
+
+            try {
+                const res = await fetch(`${API_URL}/savings-goals`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ goalName, targetAmount, deadline })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showAlert('success', `✅ Goal "${goalName}" created!`);
+                    document.getElementById('goalName').value = '';
+                    document.getElementById('targetAmount').value = '';
+                    document.getElementById('savedAmount').value = '';
+                    document.getElementById('deadline').value = '';
+                    loadGoals();
+                } else { showAlert('error', `❌ ${data.error || 'Failed to create goal.'}`); }
+            } catch { showAlert('error', '❌ Network error.'); }
+        }
+
+        let currentGoalSavedAmount = 0; // track existing saved amount
+
+        function openAddMoney(id, name, currentSaved) {
+            document.getElementById('addMoneyId').value = id;
+            document.getElementById('addMoneyGoalName').textContent = `Goal: ${name}`;
+            document.getElementById('addMoneyAmount').value = '';
+            currentGoalSavedAmount = currentSaved; // store current saved amount
+            document.getElementById('addMoneyModal').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('addMoneyModal').classList.remove('active'); }
+
+        async function confirmAddMoney() {
+            const id = document.getElementById('addMoneyId').value;
+            const amountToAdd = parseFloat(document.getElementById('addMoneyAmount').value);
+            if (!amountToAdd || amountToAdd <= 0) { showAlert('error', '❌ Enter a valid amount.'); closeModal(); return; }
+            // Server expects the NEW TOTAL savedAmount, not the amount being added
+            const newTotal = currentGoalSavedAmount + amountToAdd;
+            try {
+                const res = await fetch(`${API_URL}/savings-goals/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ savedAmount: newTotal })
+                });
+                if (res.ok) { showAlert('success', `✅ ₹${amountToAdd} added!`); closeModal(); loadGoals(); }
+                else { showAlert('error', '❌ Failed to update.'); closeModal(); }
+            } catch { showAlert('error', '❌ Network error.'); closeModal(); }
+        }
+
+        async function deleteGoal(id) {
+            if (!confirm('Delete this savings goal?')) return;
+            try {
+                const res = await fetch(`${API_URL}/savings-goals/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
+                if (res.ok) { showAlert('success', '✅ Goal deleted.'); loadGoals(); }
+                else showAlert('error', '❌ Failed to delete.');
+            } catch { showAlert('error', '❌ Network error.'); }
+        }
+
+        function showAlert(type, msg) {
+            const el = document.getElementById(type === 'success' ? 'successAlert' : 'errorAlert');
+            const other = document.getElementById(type === 'success' ? 'errorAlert' : 'successAlert');
+            other.style.display = 'none';
+            el.textContent = msg; el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3500);
+        }
+
+        document.getElementById('addMoneyModal').addEventListener('click', e => { if (e.target === document.getElementById('addMoneyModal')) closeModal(); });
+        function logout() { localStorage.clear(); window.location.href = '/'; }
+        loadGoals();
+    </script>
+</body>
+</html>

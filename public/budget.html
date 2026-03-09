@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Manager - SPENDORA Advanced</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #667eea; --secondary: #764ba2;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+            --food: #FF6384; --transport: #36A2EB; --bills: #FFCE56;
+            --shopping: #4BC0C0; --entertainment: #9966FF; --others: #FF9F40;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; min-height: 100vh; }
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; padding: 20px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 1.8rem; }
+        .header-actions { display: flex; gap: 15px; }
+        .btn-header {
+            padding: 10px 20px; background: rgba(255,255,255,0.2); color: white;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .btn-header:hover { background: rgba(255,255,255,0.3); }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .period-card {
+            background: white; padding: 20px 25px; border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 25px;
+            display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+        }
+        .period-card label { font-weight: 600; color: #374151; }
+        .period-card select {
+            padding: 8px 14px; border: 2px solid #e5e7eb; border-radius: 8px;
+            font-size: 0.95rem; cursor: pointer; font-family: inherit;
+        }
+        .period-card select:focus { outline: none; border-color: var(--primary); }
+        .btn { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .card h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.3rem; }
+        .budget-item {
+            padding: 20px; border: 2px solid #e5e7eb; border-radius: 12px;
+            margin-bottom: 15px; transition: border-color 0.3s;
+        }
+        .budget-item:hover { border-color: var(--primary); }
+        .budget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .cat-info { display: flex; align-items: center; gap: 10px; }
+        .cat-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .cat-name { font-weight: 700; font-size: 1rem; }
+        .budget-amounts { font-size: 0.9rem; color: #666; }
+        .budget-amounts strong { color: #374151; }
+        .progress-container { background: #e5e7eb; height: 10px; border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
+        .progress-fill { height: 100%; border-radius: 10px; transition: width 0.6s ease; }
+        .progress-safe { background: var(--success); }
+        .progress-warn { background: var(--warning); }
+        .progress-danger { background: var(--danger); }
+        .budget-footer { display: flex; justify-content: space-between; align-items: center; }
+        .pct-badge { font-size: 0.82rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+        .pct-safe { background: rgba(16,185,129,0.1); color: #065f46; }
+        .pct-warn { background: rgba(245,158,11,0.1); color: #92400e; }
+        .pct-danger { background: rgba(239,68,68,0.1); color: #991b1b; }
+        .budget-input-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+        .budget-input-row input {
+            flex: 1; padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 8px;
+            font-size: 0.9rem; font-family: inherit;
+        }
+        .budget-input-row input:focus { outline: none; border-color: var(--primary); }
+        .btn-sm { padding: 8px 14px; font-size: 0.85rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-set { background: var(--primary); color: white; }
+        .btn-set:hover { background: var(--secondary); }
+        .no-budget-tag { font-size: 0.82rem; color: #999; font-style: italic; }
+        .chart-container { position: relative; height: 280px; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 15px; font-weight: 600; display: none; }
+        .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid var(--success); }
+        .alert-error { background: #fee2e2; color: #991b1b; border-left: 4px solid var(--danger); }
+        .summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .summary-card { background: white; padding: 18px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .summary-card p { font-size: 0.85rem; color: #666; margin-bottom: 5px; }
+        .summary-card .val { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        @media (max-width: 900px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .summary-row { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 500px) { .summary-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>💰 SPENDORA Advanced</h1>
+            <p>Budget Manager</p>
+        </div>
+        <div class="header-actions">
+            <a class="btn-header" href="add-expense.html">+ Add Expense</a>
+            <a class="btn-header" href="dashboard.html">🏠 Dashboard</a>
+            <button class="btn-header" onclick="logout()">🚪 Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Period Selector -->
+        <div class="period-card">
+            <label>📅 Viewing Budget for:</label>
+            <select id="selMonth">
+                <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+            </select>
+            <select id="selYear"><option value="2025">2025</option><option value="2024">2024</option><option value="2026">2026</option></select>
+            <button class="btn" onclick="loadAll()">Load</button>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary-row">
+            <div class="summary-card"><p>Total Budget Set</p><div class="val" id="totalBudget">₹0</div></div>
+            <div class="summary-card"><p>Total Spent</p><div class="val" style="color:var(--danger)" id="totalSpent">₹0</div></div>
+            <div class="summary-card"><p>Remaining</p><div class="val" style="color:var(--success)" id="totalRemaining">₹0</div></div>
+        </div>
+
+        <div class="alert alert-success" id="successAlert"></div>
+        <div class="alert alert-error" id="errorAlert"></div>
+
+        <div class="grid-2">
+            <!-- Budget Items -->
+            <div class="card">
+                <h2>🎯 Category Budgets</h2>
+                <div id="budgetList">Loading...</div>
+            </div>
+
+            <!-- Chart -->
+            <div class="card">
+                <h2>📊 Spending vs Budget</h2>
+                <div class="chart-container">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '';
+        const authToken = localStorage.getItem('authToken');
+        if (!authToken) { window.location.replace('/'); }
+
+        // Back-button bfcache guard
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted || performance.getEntriesByType('navigation')[0]?.type === 'back_forward') {
+                if (!localStorage.getItem('authToken')) window.location.replace('/');
+            }
+        });
+
+        const categories = [
+            { name: 'Food', emoji: '🍔', color: '#FF6384' },
+            { name: 'Transport', emoji: '🚗', color: '#36A2EB' },
+            { name: 'Bills', emoji: '💡', color: '#FFCE56' },
+            { name: 'Shopping', emoji: '🛍️', color: '#4BC0C0' },
+            { name: 'Entertainment', emoji: '🎬', color: '#9966FF' },
+            { name: 'Others', emoji: '📦', color: '#FF9F40' }
+        ];
+
+        let budgetChart = null;
+        const now = new Date();
+        document.getElementById('selMonth').value = now.getMonth() + 1;
+        document.getElementById('selYear').value = now.getFullYear();
+
+        async function loadAll() {
+            const month = document.getElementById('selMonth').value;
+            const year = document.getElementById('selYear').value;
+            try {
+                const [budgetsRes, expensesRes] = await Promise.all([
+                    fetch(`${API_URL}/budgets?month=${month}&year=${year}`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
+                    fetch(`${API_URL}/expenses?month=${month}&year=${year}`, { headers: { 'Authorization': `Bearer ${authToken}` } })
+                ]);
+                const budgets = await budgetsRes.json();
+                const expenses = await expensesRes.json();
+
+                // Build spending map
+                const spent = {};
+                expenses.forEach(e => spent[e.category] = (spent[e.category] || 0) + e.amount);
+
+                // Build budget map
+                const budgetMap = {};
+                budgets.forEach(b => budgetMap[b.category] = b);
+
+                renderBudgets(budgetMap, spent, month, year);
+                renderChart(budgetMap, spent);
+                renderSummary(budgetMap, spent);
+            } catch (err) {
+                document.getElementById('budgetList').innerHTML = '<p style="color:#ef4444">Failed to load data.</p>';
+            }
+        }
+
+        function renderBudgets(budgetMap, spent, month, year) {
+            const html = categories.map(cat => {
+                const budget = budgetMap[cat.name];
+                const spentAmt = spent[cat.name] || 0;
+                const limit = budget ? budget.limitAmount : 0;
+                const pct = limit > 0 ? Math.min((spentAmt / limit) * 100, 100) : 0;
+                const pctClass = pct >= 90 ? 'danger' : pct >= 70 ? 'warn' : 'safe';
+                const progressClass = pct >= 90 ? 'progress-danger' : pct >= 70 ? 'progress-warn' : 'progress-safe';
+                return `
+                <div class="budget-item">
+                    <div class="budget-header">
+                        <div class="cat-info">
+                            <div class="cat-dot" style="background:${cat.color}"></div>
+                            <span class="cat-name">${cat.emoji} ${cat.name}</span>
+                        </div>
+                        ${limit > 0
+                            ? `<span class="no-budget-tag" style="color:#374151">Limit: ₹${limit.toFixed(2)}</span>`
+                            : `<span class="no-budget-tag">No budget set</span>`}
+                    </div>
+                    ${limit > 0 ? `
+                    <div class="progress-container">
+                        <div class="progress-fill ${progressClass}" style="width:${pct}%"></div>
+                    </div>
+                    <div class="budget-footer">
+                        <span class="budget-amounts">Spent: <strong>₹${spentAmt.toFixed(2)}</strong> / ₹${limit.toFixed(2)}</span>
+                        <span class="pct-badge pct-${pctClass}">${Math.round(pct)}% used</span>
+                    </div>` : `
+                    <div class="budget-amounts" style="margin-bottom:5px;">Spent this month: <strong>₹${spentAmt.toFixed(2)}</strong></div>`}
+                    <div class="budget-input-row">
+                        <input type="number" id="input-${cat.name}" placeholder="Set limit amount (₹)" value="${limit > 0 ? limit : ''}" />
+                        <button class="btn-sm btn-set" onclick="setBudget('${cat.name}', ${month}, ${year})">Set</button>
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('budgetList').innerHTML = html;
+        }
+
+        function renderChart(budgetMap, spent) {
+            const labels = categories.map(c => c.name);
+            const spentData = categories.map(c => spent[c.name] || 0);
+            const limitData = categories.map(c => budgetMap[c.name]?.limitAmount || 0);
+
+            if (budgetChart) budgetChart.destroy();
+            budgetChart = new Chart(document.getElementById('budgetChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Spent', data: spentData, backgroundColor: categories.map(c => c.color + 'cc'), borderRadius: 6 },
+                        { label: 'Budget Limit', data: limitData, backgroundColor: 'rgba(102,126,234,0.2)', borderColor: '#667eea', borderWidth: 2, borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function renderSummary(budgetMap, spent) {
+            const totalBudget = Object.values(budgetMap).reduce((s, b) => s + b.limitAmount, 0);
+            const totalSpent = Object.values(spent).reduce((s, v) => s + v, 0);
+            document.getElementById('totalBudget').textContent = `₹${totalBudget.toFixed(2)}`;
+            document.getElementById('totalSpent').textContent = `₹${totalSpent.toFixed(2)}`;
+            document.getElementById('totalRemaining').textContent = `₹${Math.max(0, totalBudget - totalSpent).toFixed(2)}`;
+        }
+
+        async function setBudget(category, month, year) {
+            const val = parseFloat(document.getElementById(`input-${category}`).value);
+            if (!val || val <= 0) { showAlert('error', '❌ Enter a valid amount.'); return; }
+            try {
+                const res = await fetch(`${API_URL}/budgets`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ category, limitAmount: val, month: parseInt(month), year: parseInt(year) })
+                });
+                if (res.ok) { showAlert('success', `✅ Budget set for ${category}!`); loadAll(); }
+                else { const d = await res.json(); showAlert('error', `❌ ${d.message || 'Failed.'}`); }
+            } catch { showAlert('error', '❌ Network error.'); }
+        }
+
+        function showAlert(type, msg) {
+            const el = document.getElementById(type === 'success' ? 'successAlert' : 'errorAlert');
+            const other = document.getElementById(type === 'success' ? 'errorAlert' : 'successAlert');
+            other.style.display = 'none';
+            el.textContent = msg; el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3500);
+        }
+
+        function logout() { localStorage.clear(); window.location.href = '/'; }
+        loadAll();
+    </script>
+</body>
+</html>

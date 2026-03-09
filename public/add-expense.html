@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expense - SPENDORA Advanced</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #667eea; --secondary: #764ba2;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+            --food: #FF6384; --transport: #36A2EB; --bills: #FFCE56;
+            --shopping: #4BC0C0; --entertainment: #9966FF; --others: #FF9F40;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; min-height: 100vh; }
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; padding: 20px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 1.8rem; }
+        .header-actions { display: flex; gap: 15px; }
+        .btn-header {
+            padding: 10px 20px; background: rgba(255,255,255,0.2); color: white;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .btn-header:hover { background: rgba(255,255,255,0.3); }
+        .container { max-width: 700px; margin: 40px auto; padding: 0 20px; }
+        .card {
+            background: white; padding: 35px; border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .card h2 { color: var(--primary); margin-bottom: 25px; font-size: 1.5rem; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #374151; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 12px 15px; border: 2px solid #e5e7eb;
+            border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .category-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+        }
+        .category-option { display: none; }
+        .category-label {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 15px 10px; border: 2px solid #e5e7eb; border-radius: 10px;
+            cursor: pointer; transition: all 0.2s; text-align: center; gap: 6px;
+        }
+        .category-label .emoji { font-size: 1.6rem; }
+        .category-label .name { font-size: 0.85rem; font-weight: 600; color: #374151; }
+        .category-option:checked + .category-label { border-color: var(--primary); background: rgba(102,126,234,0.08); }
+        .category-option[value="Food"]:checked + .category-label { border-color: var(--food); background: rgba(255,99,132,0.08); }
+        .category-option[value="Transport"]:checked + .category-label { border-color: var(--transport); background: rgba(54,162,235,0.08); }
+        .category-option[value="Bills"]:checked + .category-label { border-color: #d4a800; background: rgba(255,206,86,0.08); }
+        .category-option[value="Shopping"]:checked + .category-label { border-color: var(--shopping); background: rgba(75,192,192,0.08); }
+        .category-option[value="Entertainment"]:checked + .category-label { border-color: var(--entertainment); background: rgba(153,102,255,0.08); }
+        .category-option[value="Others"]:checked + .category-label { border-color: var(--others); background: rgba(255,159,64,0.08); }
+        .recurring-row { display: flex; align-items: center; gap: 10px; }
+        .recurring-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+        .btn-submit {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; border: none; border-radius: 8px; font-size: 1.1rem;
+            font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 10px;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.4); }
+        .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .alert {
+            padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;
+            font-weight: 600; display: none;
+        }
+        .alert-success { background: #d1fae5; color: #065f46; border-left: 4px solid var(--success); }
+        .alert-error { background: #fee2e2; color: #991b1b; border-left: 4px solid var(--danger); }
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+            .category-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>💰 SPENDORA Advanced</h1>
+            <p>Track every penny</p>
+        </div>
+        <div class="header-actions">
+            <a class="btn-header" href="dashboard.html">🏠 Dashboard</a>
+            <button class="btn-header" onclick="logout()">🚪 Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>➕ Add New Expense</h2>
+
+            <div class="alert alert-success" id="successAlert">✅ Expense added successfully!</div>
+            <div class="alert alert-error" id="errorAlert">❌ Something went wrong. Please try again.</div>
+
+            <div class="form-group">
+                <label>Expense Title *</label>
+                <input type="text" id="title" placeholder="e.g. Lunch at restaurant" required />
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Amount (₹) *</label>
+                    <input type="number" id="amount" placeholder="0.00" min="0" step="0.01" required />
+                </div>
+                <div class="form-group">
+                    <label>Date *</label>
+                    <input type="date" id="date" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Category *</label>
+                <div class="category-grid">
+                    <div><input class="category-option" type="radio" name="category" id="cat-food" value="Food"><label class="category-label" for="cat-food"><span class="emoji">🍔</span><span class="name">Food</span></label></div>
+                    <div><input class="category-option" type="radio" name="category" id="cat-transport" value="Transport"><label class="category-label" for="cat-transport"><span class="emoji">🚗</span><span class="name">Transport</span></label></div>
+                    <div><input class="category-option" type="radio" name="category" id="cat-bills" value="Bills"><label class="category-label" for="cat-bills"><span class="emoji">💡</span><span class="name">Bills</span></label></div>
+                    <div><input class="category-option" type="radio" name="category" id="cat-shopping" value="Shopping"><label class="category-label" for="cat-shopping"><span class="emoji">🛍️</span><span class="name">Shopping</span></label></div>
+                    <div><input class="category-option" type="radio" name="category" id="cat-entertainment" value="Entertainment"><label class="category-label" for="cat-entertainment"><span class="emoji">🎬</span><span class="name">Entertainment</span></label></div>
+                    <div><input class="category-option" type="radio" name="category" id="cat-others" value="Others"><label class="category-label" for="cat-others"><span class="emoji">📦</span><span class="name">Others</span></label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Note (optional)</label>
+                <textarea id="note" placeholder="Add a note about this expense..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <div class="recurring-row">
+                    <input type="checkbox" id="isRecurring" />
+                    <label for="isRecurring" style="cursor:pointer;">🔁 This is a recurring expense (monthly)</label>
+                </div>
+            </div>
+
+            <button class="btn-submit" id="submitBtn" onclick="addExpense()">Add Expense</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '';
+        const authToken = localStorage.getItem('authToken');
+
+        if (!authToken) { window.location.replace('/'); }
+
+        // Back-button bfcache guard
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted || performance.getEntriesByType('navigation')[0]?.type === 'back_forward') {
+                if (!localStorage.getItem('authToken')) window.location.replace('/');
+            }
+        });
+
+        // Set today's date as default
+        document.getElementById('date').valueAsDate = new Date();
+
+        async function addExpense() {
+            const title = document.getElementById('title').value.trim();
+            const amount = parseFloat(document.getElementById('amount').value);
+            const date = document.getElementById('date').value;
+            const category = document.querySelector('input[name="category"]:checked')?.value;
+            const note = document.getElementById('note').value.trim();
+            const isRecurring = document.getElementById('isRecurring').checked;
+
+            if (!title || !amount || !date || !category) {
+                showAlert('error', '❌ Please fill all required fields and select a category.');
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+
+            try {
+                const res = await fetch(`${API_URL}/expenses`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ title, amount, category, note, date, isRecurring })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showAlert('success', '✅ Expense added successfully!');
+                    clearForm();
+                    setTimeout(() => window.location.href = 'expenses.html', 1500);
+                } else {
+                    showAlert('error', `❌ ${data.message || 'Failed to add expense.'}`);
+                }
+            } catch (err) {
+                showAlert('error', '❌ Network error. Please check your connection.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Add Expense';
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('title').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('note').value = '';
+            document.getElementById('isRecurring').checked = false;
+            document.querySelector('input[name="category"]:checked') && (document.querySelector('input[name="category"]:checked').checked = false);
+            document.getElementById('date').valueAsDate = new Date();
+        }
+
+        function showAlert(type, message) {
+            const successEl = document.getElementById('successAlert');
+            const errorEl = document.getElementById('errorAlert');
+            successEl.style.display = 'none';
+            errorEl.style.display = 'none';
+            if (type === 'success') { successEl.textContent = message; successEl.style.display = 'block'; }
+            else { errorEl.textContent = message; errorEl.style.display = 'block'; }
+            setTimeout(() => { successEl.style.display = 'none'; errorEl.style.display = 'none'; }, 4000);
+        }
+
+        function logout() { localStorage.clear(); window.location.href = '/'; }
+    </script>
+</body>
+</html>
