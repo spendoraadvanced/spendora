@@ -10,8 +10,7 @@ const app = express();
 // CONFIGURATION
 const JWT_SECRET = process.env.JWT_SECRET || 'spendora-secret-key-2024';
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/spendora_advanced';
-// MIDDLEWARE
+const MONGODB_URI = "mongodb+srv://spendora:spendora2026@spendoraadvanced.wk76sau.mongodb.net/?retryWrites=true&w=majority&appName=spendoraadvanced";
 app.use(express.json());
 app.use(cors());
 app.use(express.static('public'));
